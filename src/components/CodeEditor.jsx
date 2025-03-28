@@ -39,6 +39,7 @@ export default function CodeEditor() {
 
     document.documentElement.classList.toggle("dark", isDarkMode);
   }, [language]);
+  
 
   const executeWithPiston = async () => {
     setIsLoading(true);
@@ -349,11 +350,13 @@ export default function CodeEditor() {
                 </div>
               ) : output ? (
                 <div
-                  className={
+                  className={`${
                     output.startsWith("Error")
                       ? "text-red-500"
-                      : "text-white"
-                  }
+                      : darkMode
+                      ? "text-white"
+                      : "text-black"
+                  }`}
                 >
                   {output}
                 </div>

@@ -2,7 +2,15 @@ import { useState, useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import axios from "axios";
 import { SUPPORTED_LANGUAGES } from "./languages.js";
-import { FaSun, FaMoon, FaExpand, FaCompress, FaPlay, FaDownload, FaRedo, FaTrash, FaChevronDown } from "react-icons/fa";
+import {
+  FaSun,
+  FaMoon,
+  FaPlay,
+  FaDownload,
+  FaRedo,
+  FaTrash,
+  FaChevronDown,
+} from "react-icons/fa";
 import { GiLaptop } from "react-icons/gi";
 
 export default function CodeEditor() {
@@ -12,21 +20,24 @@ export default function CodeEditor() {
   const [output, setOutput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [executionTime, setExecutionTime] = useState(null);
-  const [isExpanded, setIsExpanded] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
   const [fontSize, setFontSize] = useState(14);
   const editorRef = useRef(null);
 
   useEffect(() => {
     const savedCode = localStorage.getItem(`code_${language}`);
-    const savedDarkMode = localStorage.getItem("darkMode") === "true";
+    const savedDarkMode = localStorage.getItem("darkMode");
     const savedFontSize = parseInt(localStorage.getItem("fontSize")) || 14;
 
-    setDarkMode(savedDarkMode);
+    const isDarkMode = savedDarkMode === null ? true : savedDarkMode === "true";
+
+    setDarkMode(isDarkMode);
     setFontSize(savedFontSize);
     setCode(savedCode || SUPPORTED_LANGUAGES[language].defaultCode);
     setOutput("");
     setExecutionTime(null);
+
+    document.documentElement.classList.toggle("dark", isDarkMode);
   }, [language]);
 
   const executeWithPiston = async () => {
@@ -124,14 +135,15 @@ export default function CodeEditor() {
 
   return (
     <div
-      className={`flex flex-col ${
-        isExpanded ? "fixed inset-0 z-50" : "min-h-screen"
-      } ${darkMode ? "bg-gray-900 text-gray-200" : "bg-gray-50 text-gray-800"}`}
+      className={`${
+        darkMode ? "bg-gray-900 text-gray-200" : "bg-gray-50 text-gray-800"
+      }`}
     >
-      {/* Header */}
       <header
         className={`flex flex-wrap justify-between items-center p-3 ${
-          darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
+          darkMode
+            ? "bg-gray-800 border-gray-700"
+            : "bg-gray-100 border-gray-300"
         } border-b shadow-sm gap-2`}
       >
         <div className="flex items-center flex-shrink-0 space-x-2 sm:space-x-4">
@@ -140,7 +152,7 @@ export default function CodeEditor() {
               darkMode ? "text-blue-400" : "text-blue-600"
             } flex items-center`}
           >
-            <GiLaptop size={22} className="mr-2"/>
+            <GiLaptop size={22} className="mr-2" />
             <span className="hidden sm:inline">Code</span> Runner
           </h1>
 
@@ -152,7 +164,7 @@ export default function CodeEditor() {
               className={`md:px-3 py-1 px-1 rounded-md text-sm ${
                 darkMode
                   ? "bg-gray-700 border-gray-600 text-white"
-                  : "bg-white border-gray-300 text-black"
+                  : "bg-gray-50 border-gray-300 text-gray-800"
               } border focus:outline-none focus:ring-1 ${
                 SUPPORTED_LANGUAGES[language].color
               } appearance-none md:pr-7`}
@@ -161,7 +173,7 @@ export default function CodeEditor() {
                 <option
                   key={key}
                   value={key}
-                  className={`${darkMode ? "bg-gray-800" : "bg-white"}`}
+                  className={`${darkMode ? "bg-gray-800" : "bg-gray-50"}`}
                 >
                   {lang.icon} {lang.name}
                 </option>
@@ -219,33 +231,18 @@ export default function CodeEditor() {
           >
             {darkMode ? <FaSun size={20} /> : <FaMoon size={18} />}
           </button>
-
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className={`p-1 px-2 rounded-md ${
-              darkMode
-                ? "bg-gray-700 hover:bg-gray-600"
-                : "bg-gray-200 hover:bg-gray-300"
-            } transition-colors`}
-            aria-label="Toggle fullscreen"
-          >
-            {isExpanded ? <FaCompress size={20} /> : <FaExpand size={20} />}
-          </button>
         </div>
       </header>
-
-      {/* Main Content */}
-      <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-        {/* Editor */}
+      <div className="pb-0.5 flex flex-col md:flex-row">
         <div
-          className={`${isExpanded ? "w-full" : "md:w-2/3"} flex flex-col ${
-            darkMode ? "border-gray-700" : "border-gray-200"
-          } border-r pb-2`}
+          className={`w-full md:w-2/3 ${
+            darkMode ? "border-gray-700" : "border-gray-300"
+          } border-r`}
         >
           <div
             className={`flex justify-between items-center p-2 ${
-              darkMode ? "bg-gray-800" : "bg-gray-100"
-            } border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}
+              darkMode ? "bg-gray-800" : "bg-gray-200"
+            } border-b ${darkMode ? "border-gray-700" : "border-gray-300"}`}
           >
             <div className="flex items-center space-x-2">
               <span
@@ -260,7 +257,7 @@ export default function CodeEditor() {
                 className={`px-3 py-1 text-xs rounded-md flex items-center space-x-1 ${
                   darkMode
                     ? "bg-gray-700 hover:bg-gray-600"
-                    : "bg-gray-200 hover:bg-gray-300"
+                    : "bg-gray-100 hover:bg-gray-300"
                 }`}
               >
                 <FaDownload size={15} />
@@ -271,14 +268,15 @@ export default function CodeEditor() {
                 className={`px-3 py-1 text-xl rounded-md ${
                   darkMode
                     ? "bg-gray-700 hover:bg-gray-600"
-                    : "bg-gray-200 hover:bg-gray-300"
+                    : "bg-gray-100 hover:bg-gray-300"
                 }`}
               >
                 <FaRedo size={20} />
               </button>
             </div>
           </div>
-          <div className="flex-1 overflow-hidden">
+
+          <div className="overflow-hidden h-[33rem]">
             <Editor
               height="100%"
               width="100%"
@@ -300,16 +298,10 @@ export default function CodeEditor() {
             />
           </div>
         </div>
-
-        {/* Output Panel */}
-        <div
-          className={`${isExpanded ? "w-full" : "md:w-1/3"} flex flex-col ${
-            darkMode ? "bg-gray-800" : "bg-gray-100"
-          }`}
-        >
+        <div className="flex flex-col w-full md:w-1/3">
           <div
             className={`flex justify-between items-center p-2.5 ${
-              darkMode ? "border-gray-700" : "border-gray-200"
+              darkMode ? "border-gray-700" : "border-gray-300"
             } border-b`}
           >
             <div className="flex items-center space-x-2">
@@ -338,140 +330,145 @@ export default function CodeEditor() {
               className={`px-3 py-1 text-xs rounded-md ${
                 darkMode
                   ? "bg-gray-700 hover:bg-gray-600"
-                  : "bg-gray-200 hover:bg-gray-300"
+                  : "bg-gray-100 hover:bg-gray-300"
               } disabled:opacity-50`}
             >
               <FaTrash size={15} />
             </button>
           </div>
-
-          {/* Output Content */}
-          <div
-            className={`flex-1 overflow-auto p-4 font-mono text-sm whitespace-pre-wrap ${
-              darkMode ? "bg-gray-900" : "bg-white"
-            }`}
-          >
-            {isLoading ? (
-              <div className="flex flex-col items-center justify-center h-full space-y-2">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-                <span className="text-sm">Running your code...</span>
-              </div>
-            ) : output ? (
-              <div className={output.startsWith("Error") ? "text-red-400" : ""}>
-                {output}
-              </div>
-            ) : (
-              <div
-                className={`${
-                  darkMode ? "text-gray-500" : "text-gray-400"
-                } italic flex items-center justify-center h-full`}
-              >
-                {userInput
-                  ? "Program will run with provided input"
-                  : "Output will appear here"}
-              </div>
-            )}
-          </div>
-
-          {/* Input Section */}
-          <div
-            className={`p-3 ${
-              darkMode
-                ? "border-gray-700 bg-gray-800"
-                : "border-gray-200 bg-gray-50"
-            } border-t`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <label
-                className={`block text-xs font-medium ${
-                  darkMode ? "text-gray-400" : "text-gray-600"
-                }`}
-              >
-                PROGRAM INPUT (STDIN)
-              </label>
-              <span
-                className={`text-xs ${
-                  darkMode ? "text-gray-500" : "text-gray-400"
-                }`}
-              >
-                {userInput.length} chars
-              </span>
-            </div>
-            <textarea
-              value={userInput}
-              onChange={(e) => setUserInput(e.target.value)}
-              className={`w-full p-3 rounded-md font-mono text-sm border ${
-                darkMode
-                  ? "bg-gray-700 border-gray-600 text-white"
-                  : "bg-white border-gray-300 text-black"
-              } focus:outline-none focus:ring-1 focus:ring-blue-500`}
-              rows={3}
-              placeholder="Enter input for your program (supports STDIN)"
-              disabled={isLoading}
-            />
-          </div>
-
-          {/* Action Buttons */}
-          <div
-            className={`p-3 ${
-              darkMode ? "border-gray-700" : "border-gray-200"
-            } border-t flex space-x-2`}
-          >
-            <button
-              onClick={() => setUserInput("")}
-              disabled={!userInput}
-              className={`px-4 py-2 rounded-md ${
-                darkMode
-                  ? "bg-gray-700 hover:bg-gray-600"
-                  : "bg-gray-200 hover:bg-gray-300"
-              } disabled:opacity-50 flex-1`}
-            >
-              Clear Input
-            </button>
-            <button
-              onClick={executeWithPiston}
-              disabled={isLoading || !code.trim()}
-              className={`px-4 py-2 rounded-md font-medium flex items-center justify-center flex-1 ${
-                isLoading ? "bg-blue-700" : "bg-blue-600 hover:bg-blue-500"
-              } ${
-                !code.trim() ? "opacity-50 cursor-not-allowed" : ""
-              } text-white`}
+          <div className="h-[8rem] overflow-y-auto md:h-[21rem]">
+            <div
+              className={`overflow-y-auto p-4 font-mono text-sm whitespace-pre-wrap ${
+                darkMode ? "bg-gray-900" : "bg-gray-50"
+              }`}
             >
               {isLoading ? (
-                <>
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Running
-                </>
+                <div className="flex flex-col items-center justify-center h-full space-y-2">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                  <span className="text-sm">Running your code...</span>
+                </div>
+              ) : output ? (
+                <div
+                  className={
+                    output.startsWith("Error")
+                      ? "text-red-500"
+                      : "text-white"
+                  }
+                >
+                  {output}
+                </div>
               ) : (
-                <>
-                  <FaPlay className="mr-2" />
-                  Run Code
-                </>
+                <div
+                  className={`${
+                    darkMode ? "text-gray-500" : "text-gray-500"
+                  } italic flex items-center justify-center h-full`}
+                >
+                  {userInput
+                    ? "Program will run with provided input"
+                    : "Output will appear here"}
+                </div>
               )}
-            </button>
+            </div>
+          </div>
+          <div>
+            <div
+              className={`p-1.5 ${
+                darkMode
+                  ? "border-gray-700 bg-gray-800"
+                  : "border-gray-300 bg-gray-100"
+              } border-t`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <label
+                  className={`block text-xs font-medium ${
+                    darkMode ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  PROGRAM INPUT (STDIN)
+                </label>
+                <span
+                  className={`text-xs ${
+                    darkMode ? "text-gray-500" : "text-gray-500"
+                  }`}
+                >
+                  {userInput.length} chars
+                </span>
+              </div>
+              <textarea
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                className={`w-full p-3 rounded-md font-mono text-sm border ${
+                  darkMode
+                    ? "bg-gray-700 border-gray-600 text-white"
+                    : "bg-white border-gray-300 text-gray-800"
+                } focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                rows={3}
+                placeholder="Enter input for your program (supports STDIN)"
+                disabled={isLoading}
+              />
+            </div>
+            <div
+              className={`p-3 ${
+                darkMode
+                  ? "border-gray-700 bg-gray-800"
+                  : "border-gray-300 bg-gray-100"
+              } border-t flex space-x-2`}
+            >
+              <button
+                onClick={() => setUserInput("")}
+                disabled={!userInput}
+                className={`px-4 py-2 rounded-md ${
+                  darkMode
+                    ? "bg-gray-700 hover:bg-gray-600"
+                    : "bg-gray-200 hover:bg-gray-300"
+                } disabled:opacity-50 flex-1`}
+              >
+                Clear Input
+              </button>
+              <button
+                onClick={executeWithPiston}
+                disabled={isLoading || !code.trim()}
+                className={`px-4 py-2 rounded-md font-medium flex items-center justify-center flex-1 ${
+                  isLoading ? "bg-blue-700" : "bg-blue-600 hover:bg-blue-500"
+                } ${
+                  !code.trim() ? "opacity-50 cursor-not-allowed" : ""
+                } text-white`}
+              >
+                {isLoading ? (
+                  <>
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Running
+                  </>
+                ) : (
+                  <>
+                    <FaPlay className="mr-2" />
+                    Run Code
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 }
-
